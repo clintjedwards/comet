@@ -1,0 +1,28 @@
+#Mac files
+.DS_Store
+
+#Vs Code
+.vscode
+
+#secret files
+.env
+-docker/.env
+
+#frontend
+node_modules/
+dist/*
+-dist/.gitkeep
+main.js
+
+#protobuf
+*.pb.go
+*_pb.d.ts
+*_pb.js
+*Pb.ts
+
+#localhost cert files
+*.crt
+*.key
+
+#ignore shitty packr file that wont go away
+a_frontend-packr.go

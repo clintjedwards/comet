@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package proto;
+
+// Node represents a single comet instance (vm/container/etc)
+message Node {
+  // Unique ID
+  string id = 1;
+  // Comet human readable name
+  string name = 2;
+  string notes = 3;
+  // Time created in epoch
+  int64 created = 4;
+  // Time modified in epoch
+  int64 modified = 5;
+  // human readable name of team or user who is allowed to manage the asset
+  repeated string owners = 6;
+}
+
+service Comet {
+    // Comet routes
+    rpc CreateComet(CreateCometRequest) returns (CreateCometResponse);
+}
+
+message CreateCometRequest {}
+message CreateCometResponse{}

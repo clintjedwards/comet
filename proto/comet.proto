@@ -38,6 +38,7 @@ service Comet {
   rpc ExtendComet(ExtendCometRequest) returns (ExtendCometResponse);
   rpc GetComet(GetCometRequest) returns (GetCometResponse);
   rpc ListComets(ListCometsRequest) returns (ListCometsResponse);
+  rpc SearchComets(SearchCometsRequest) returns (SearchCometsResponse);
   rpc StartComet(StartCometRequest) returns (StartCometResponse);
   rpc StopComet(StopCometRequest) returns (StopCometResponse);
   rpc UpdateComet(UpdateCometRequest) returns (UpdateCometResponse);
@@ -57,6 +58,9 @@ message GetCometResponse {}
 
 message ListCometsRequest {}
 message ListCometsResponse {}
+
+message SearchCometsRequest {}
+message SearchCometsResponse {}
 
 message StartCometRequest {}
 message StartCometResponse {}

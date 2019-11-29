@@ -15,8 +15,8 @@ func StartServices() {
 		log.Fatal(err)
 	}
 
-	api := api.NewAPI(config)
-	grpcServer := api.CreateGRPCServer(api)
+	cometAPI := api.NewAPI(config)
+	grpcServer := api.CreateGRPCServer(cometAPI)
 
 	go metrics.InitPrometheusService(config)
 	api.InitGRPCService(config, grpcServer)

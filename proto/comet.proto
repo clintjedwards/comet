@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package proto;
 
-// Node represents a single comet instance (vm/container/etc)
-message Node {
+// Comet represents a single comet instance (vm/container/etc)
+message Comet {
   // id is the unique identifier for a node in comet
   string id = 1;
   // instance_id is the unique identifier for the particular backend being used
@@ -31,7 +31,7 @@ message Node {
   map<string, string> metadata = 11;
 }
 
-service Comet {
+service CometAPI {
   // Comet routes
   rpc CreateComet(CreateCometRequest) returns (CreateCometResponse);
   rpc DeleteComet(DeleteCometRequest) returns (DeleteCometResponse);

@@ -5,60 +5,54 @@ import (
 	"net"
 
 	"github.com/clintjedwards/comet/config"
-	"github.com/clintjedwards/comet/search"
+	"github.com/clintjedwards/comet/proto"
 	"github.com/clintjedwards/comet/storage"
-
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/clintjedwards/comet/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
+
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
 // API represents the grpc backend service
 type API struct {
+	config *config.Config
+	//search  *search.Search
 	storage storage.Engine
-	config  *config.Config
-	search  *search.Search
 }
 
 // NewAPI inits a grpc api service
 func NewAPI(config *config.Config) *API {
-	newAPI := API{}
 
-	// storage, err := storage.InitStorage()
-	// if err != nil {
-	// 	utils.StructuredLog(utils.LogLevelFatal, "failed to initialize storage", err)
-	// }
+	storage, err := storage.InitStorage(storage.EngineType(config.Database.Engine))
+	if err != nil {
+		utils.Log().Panicf("could not init storage: %v", err)
+	}
 
 	// searchIndex, err := search.InitSearch()
-	// if err != nil {
-	// 	utils.StructuredLog(utils.LogLevelFatal, "failed to initialize search functions", err)
-	// }
 
 	// go searchIndex.BuildIndex()
 
-	// basecoatAPI.config = config
-	// basecoatAPI.storage = storage
-	// basecoatAPI.search = searchIndex
-
-	return &newAPI
+	return &API{
+		config:  config,
+		storage: storage,
+	}
 }
 
 // CreateGRPCServer creates a grpc server with all the proper settings; TLS enabled
-func CreateGRPCServer(cometAPI *API) *grpc.Server {
+func CreateGRPCServer(api *API) *grpc.Server {
 
-	creds, err := credentials.NewServerTLSFromFile(cometAPI.config.TLSCertPath, cometAPI.config.TLSKeyPath)
+	creds, err := credentials.NewServerTLSFromFile(api.config.TLSCertPath, api.config.TLSKeyPath)
 	if err != nil {
-		utils.StructuredLog(utils.LogLevelFatal, "failed to get certificates", err)
+		utils.Log().Panicf("failed to get certificates: %v", err)
 	}
 
 	serverOption := grpc.Creds(creds)
 
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			grpc_auth.UnaryServerInterceptor(cometAPI.authenticate),
 			grpc_prometheus.UnaryServerInterceptor,
 		)),
 		serverOption,
@@ -68,7 +62,7 @@ func CreateGRPCServer(cometAPI *API) *grpc.Server {
 
 	reflection.Register(grpcServer)
 	grpc_prometheus.Register(grpcServer)
-	api.RegisterCometServer(grpcServer, cometAPI)
+	proto.RegisterCometAPIServer(grpcServer, api)
 
 	return grpcServer
 }
@@ -76,13 +70,13 @@ func CreateGRPCServer(cometAPI *API) *grpc.Server {
 // InitGRPCService starts a GPRC server
 func InitGRPCService(config *config.Config, server *grpc.Server) {
 
-	listen, err := net.Listen("tcp", config.Backend.GRPCURL)
+	listen, err := net.Listen("tcp", config.Comet.GRPCURL)
 	if err != nil {
-		utils.StructuredLog(utils.LogLevelFatal, "could not initialize tcp listener", err)
+		utils.Log().Panicf("could not init tcp listener", err)
 	}
 
-	utils.StructuredLog(utils.LogLevelInfo, "starting basecoat grpc service",
-		map[string]string{"url": config.Backend.GRPCURL})
+	utils.Log().Infow("starting comet grpc service",
+		"url", config.Comet.GRPCURL)
 
 	log.Fatal(server.Serve(listen))
 }

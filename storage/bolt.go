@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clintjedwards/comet/utils"
-
-	"github.com/golang/protobuf/proto"
-
 	"github.com/boltdb/bolt"
-	"github.com/clintjedwards/comet/api"
 	"github.com/clintjedwards/comet/config"
+	"github.com/clintjedwards/comet/proto"
+	"github.com/clintjedwards/comet/utils"
+	go_proto "github.com/golang/protobuf/proto"
 )
 
 type boltDB struct {
@@ -27,7 +25,7 @@ func (boltDB *boltDB) Init(config *config.Config) error {
 
 	boltDB.store = db
 
-	err = boltDB.createBuckets(PipelinesBucket)
+	err = boltDB.createBuckets(CometsBucket)
 	if err != nil {
 		return err
 	}
@@ -54,22 +52,22 @@ func (boltDB *boltDB) createBuckets(names ...Bucket) error {
 	return nil
 }
 
-func (boltDB *boltDB) GetAllPipelines() (map[string]*api.Pipeline, error) {
-	results := map[string]*api.Pipeline{}
+func (boltDB *boltDB) GetAllComets() (map[string]*proto.Comet, error) {
+	results := map[string]*proto.Comet{}
 
 	boltDB.store.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PipelinesBucket))
+		bucket := tx.Bucket([]byte(CometsBucket))
 
 		err := bucket.ForEach(func(key, value []byte) error {
-			var pipeline api.Pipeline
-			err := proto.Unmarshal(value, &pipeline)
+			var comet proto.Comet
+			err := go_proto.Unmarshal(value, &comet)
 			if err != nil {
-				utils.StructuredLog(utils.LogLevelError,
-					"could not unmarshal pipeline while trying to retrieve all",
-					map[string]string{"pipeline_id": string(key), "error": err.Error()})
+				utils.Log().Errorf("could not unmarshal database object",
+					"id", key,
+					"error", err)
 				return nil
 			}
-			results[string(key)] = &pipeline
+			results[string(key)] = &comet
 			return nil
 		})
 		if err != nil {
@@ -82,19 +80,19 @@ func (boltDB *boltDB) GetAllPipelines() (map[string]*api.Pipeline, error) {
 	return results, nil
 }
 
-func (boltDB *boltDB) GetPipeline(id string) (*api.Pipeline, error) {
+func (boltDB *boltDB) GetComet(id string) (*proto.Comet, error) {
 
-	var storedPipeline api.Pipeline
+	var storedComet proto.Comet
 
 	err := boltDB.store.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PipelinesBucket))
+		bucket := tx.Bucket([]byte(CometsBucket))
 
-		pipelineRaw := bucket.Get([]byte(id))
-		if pipelineRaw == nil {
+		cometRaw := bucket.Get([]byte(id))
+		if cometRaw == nil {
 			return utils.ErrEntityNotFound
 		}
 
-		err := proto.Unmarshal(pipelineRaw, &storedPipeline)
+		err := go_proto.Unmarshal(cometRaw, &storedComet)
 		if err != nil {
 			return err
 		}
@@ -105,25 +103,25 @@ func (boltDB *boltDB) GetPipeline(id string) (*api.Pipeline, error) {
 		return nil, err
 	}
 
-	return &storedPipeline, nil
+	return &storedComet, nil
 }
 
-func (boltDB *boltDB) AddPipeline(id string, pipeline *api.Pipeline) error {
+func (boltDB *boltDB) AddComet(id string, comet *proto.Comet) error {
 	err := boltDB.store.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PipelinesBucket))
+		bucket := tx.Bucket([]byte(CometsBucket))
 
 		// First check if key exists
-		currentPipeline := bucket.Get([]byte(id))
-		if currentPipeline != nil {
+		currentComet := bucket.Get([]byte(id))
+		if currentComet != nil {
 			return utils.ErrEntityExists
 		}
 
-		pipelineRaw, err := proto.Marshal(pipeline)
+		cometRaw, err := go_proto.Marshal(comet)
 		if err != nil {
 			return err
 		}
 
-		err = bucket.Put([]byte(id), pipelineRaw)
+		err = bucket.Put([]byte(id), cometRaw)
 		if err != nil {
 			return err
 		}
@@ -135,22 +133,22 @@ func (boltDB *boltDB) AddPipeline(id string, pipeline *api.Pipeline) error {
 	return nil
 }
 
-func (boltDB *boltDB) UpdatePipeline(id string, pipeline *api.Pipeline) error {
+func (boltDB *boltDB) UpdateComet(id string, comet *proto.Comet) error {
 	err := boltDB.store.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PipelinesBucket))
+		bucket := tx.Bucket([]byte(CometsBucket))
 
 		// First check if key exists
-		currentPipeline := bucket.Get([]byte(id))
-		if currentPipeline == nil {
+		currentComet := bucket.Get([]byte(id))
+		if currentComet == nil {
 			return utils.ErrEntityNotFound
 		}
 
-		pipelineRaw, err := proto.Marshal(pipeline)
+		cometRaw, err := go_proto.Marshal(comet)
 		if err != nil {
 			return err
 		}
 
-		err = bucket.Put([]byte(id), pipelineRaw)
+		err = bucket.Put([]byte(id), cometRaw)
 		if err != nil {
 			return err
 		}
@@ -162,13 +160,13 @@ func (boltDB *boltDB) UpdatePipeline(id string, pipeline *api.Pipeline) error {
 	return nil
 }
 
-func (boltDB *boltDB) DeletePipeline(id string) error {
+func (boltDB *boltDB) DeleteComet(id string) error {
 	err := boltDB.store.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PipelinesBucket))
+		bucket := tx.Bucket([]byte(CometsBucket))
 
 		// First check if key exists
-		currentPipeline := bucket.Get([]byte(id))
-		if currentPipeline == nil {
+		currentComet := bucket.Get([]byte(id))
+		if currentComet == nil {
 			return utils.ErrEntityNotFound
 		}
 

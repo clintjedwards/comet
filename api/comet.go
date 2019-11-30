@@ -1,0 +1,3 @@
+func (api *API) spawnComet() {
+
+}

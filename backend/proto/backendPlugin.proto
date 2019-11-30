@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package proto;
+
+service BackendPlugin {
+    rpc CreateMachine(CreateMachineRequest) returns (CreateMachineResponse);
+}
+
+message CreateMachineRequest {
+    string id = 1;
+    string name = 2;
+    enum Size {
+        NONE = 0;
+        TINY = 1;
+        SMALL = 2;
+        MEDIUM = 3;
+        LARGE = 4;
+        ENORMOUS = 5;
+      }
+    Size size = 3;
+    repeated string owners = 4;
+    map<string, string> metadata = 5;
+}
+message CreateMachineResponse {}

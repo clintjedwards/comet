@@ -50,14 +50,14 @@ message Comet {
 service CometAPI {
   // Comet routes
   rpc CreateComet(CreateCometRequest) returns (CreateCometResponse);
-  rpc DeleteComet(DeleteCometRequest) returns (DeleteCometResponse);
-  rpc ExtendComet(ExtendCometRequest) returns (ExtendCometResponse);
-  rpc GetComet(GetCometRequest) returns (GetCometResponse);
-  rpc ListComets(ListCometsRequest) returns (ListCometsResponse);
-  rpc SearchComets(SearchCometsRequest) returns (SearchCometsResponse);
-  rpc StartComet(StartCometRequest) returns (StartCometResponse);
-  rpc StopComet(StopCometRequest) returns (StopCometResponse);
-  rpc UpdateComet(UpdateCometRequest) returns (UpdateCometResponse);
+  // rpc DeleteComet(DeleteCometRequest) returns (DeleteCometResponse);
+  // rpc ExtendComet(ExtendCometRequest) returns (ExtendCometResponse);
+  // rpc GetComet(GetCometRequest) returns (GetCometResponse);
+  // rpc ListComets(ListCometsRequest) returns (ListCometsResponse);
+  // rpc SearchComets(SearchCometsRequest) returns (SearchCometsResponse);
+  // rpc StartComet(StartCometRequest) returns (StartCometResponse);
+  // rpc StopComet(StopCometRequest) returns (StopCometResponse);
+  // rpc UpdateComet(UpdateCometRequest) returns (UpdateCometResponse);
 }
 
 message CreateCometRequest {

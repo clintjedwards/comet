@@ -8,20 +8,24 @@ GO_LDFLAGS := '-X "github.com/clintjedwards/comet/cmd.appVersion=$(VERSION) $(GI
 
 build-protos:
 	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 
 build: check-path-included
 	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 	go mod tidy
 	go test ./utils
 	go build -ldflags $(GO_LDFLAGS) -o $(path)
 
 run:
 	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 	go mod tidy
 	go build -ldflags $(GO_LDFLAGS) -o /tmp/comet && /tmp/comet server
 
 install:
 	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 	go mod tidy
 	go build -ldflags $(GO_LDFLAGS) -o /tmp/comet
 	sudo mv /tmp/comet /usr/local/bin/

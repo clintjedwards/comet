@@ -9,6 +9,11 @@ type BoltDBConfig struct {
 	Path string `envconfig:"database_path" default:"/tmp/comet.db"`
 }
 
+// BackendConfig defines settings for comet's backend assets
+type BackendConfig struct {
+	PluginPath string `envconfig:"plugin_path" default:"/tmp/cometp/plugins"`
+}
+
 // CometConfig defines config settings for the comet service
 type CometConfig struct {
 	// the length of all randomly generated ids

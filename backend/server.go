@@ -1,4 +1,4 @@
-package plugin
+package backend
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 
 // GRPCServer is the implementation that allows the plugin to respond to requests from the host
 type GRPCServer struct {
-	Impl BackendDefinition
+	Impl PluginDefinition
 }
 
 // GRPCServer is the server implementation that allows our plugins to recieve RPCs
-func (p *BackendPlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
+func (p *Plugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
 	proto.RegisterBackendPluginServer(s, &GRPCServer{Impl: p.Impl})
 	return nil
 }

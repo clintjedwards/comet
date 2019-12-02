@@ -1,4 +1,4 @@
-package plugin
+package backend
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 type GRPCClient struct{ client proto.BackendPluginClient }
 
 // GRPCClient is the client implementation that allows our host to send RPCs to plugins
-func (p *BackendPlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
+func (p *Plugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
 	return &GRPCClient{client: proto.NewBackendPluginClient(c)}, nil
 }
 

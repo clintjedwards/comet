@@ -6,8 +6,9 @@ import (
 	"time"
 )
 
-// executeCmd wraps a context around a given command and executes it.
-func executeCmd(path string, args []string, env []string, dir string) ([]byte, error) {
+// ExecuteCmd wraps a context around a given command and executes it.
+// dir refers to the working directory of command to be run
+func ExecuteCmd(path string, args []string, env []string, dir string) ([]byte, error) {
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()

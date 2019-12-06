@@ -28,3 +28,12 @@ func (m *GRPCClient) CreateMachine(request *proto.CreateMachineRequest) (*proto.
 	}
 	return response, nil
 }
+
+// GetPluginInfo calls GetPluginInfo on the plugin through the GRPC client
+func (m *GRPCClient) GetPluginInfo(request *proto.GetPluginInfoRequest) (*proto.GetPluginInfoResponse, error) {
+	response, err := m.client.GetPluginInfo(context.Background(), request)
+	if err != nil {
+		return &proto.GetPluginInfoResponse{}, err
+	}
+	return response, nil
+}

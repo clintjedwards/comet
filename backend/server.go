@@ -28,3 +28,9 @@ func (m *GRPCServer) CreateMachine(ctx context.Context, request *proto.CreateMac
 	response, err := m.Impl.CreateMachine(request)
 	return response, err
 }
+
+// GetPluginInfo creates a machine and passes relevant details back to comet
+func (m *GRPCServer) GetPluginInfo(ctx context.Context, request *proto.GetPluginInfoRequest) (*proto.GetPluginInfoResponse, error) {
+	response, err := m.Impl.GetPluginInfo(request)
+	return response, err
+}

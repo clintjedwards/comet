@@ -11,7 +11,12 @@ type BoltDBConfig struct {
 
 // BackendConfig defines settings for comet's backend assets
 type BackendConfig struct {
-	PluginPath string `envconfig:"plugin_path" default:"/tmp/cometp/plugins"`
+	// Repository or local directory where backend plugin can be retrieved
+	Location string `envconfig:"plugin_location" default:"github.com/clintjedwards/comet/backend/dev-backend"`
+	// RepoPath is the directory where plugin repos will be stored for building
+	// Since this is temporary it isn't wrong to put it in tmp
+	RepoPath   string `envconfig:"plugin_repo_path" default:"/tmp"`
+	BinaryPath string `envconfig:"plugin_binary_path" default:"/tmp/comet-dev"`
 }
 
 // CometConfig defines config settings for the comet service
@@ -58,6 +63,7 @@ type Config struct {
 	CommandLine *CommandLineConfig
 	Database    *DatabaseConfig
 	Metrics     *MetricsConfig
+	Backend     *BackendConfig
 }
 
 // FromEnv parses environment variables into the config object based on envconfig name

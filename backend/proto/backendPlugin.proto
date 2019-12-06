@@ -4,6 +4,7 @@ package proto;
 
 service BackendPlugin {
     rpc CreateMachine(CreateMachineRequest) returns (CreateMachineResponse);
+    rpc GetPluginInfo(GetPluginInfoRequest) returns (GetPluginInfoResponse);
 }
 
 message CreateMachineRequest {
@@ -22,3 +23,8 @@ message CreateMachineRequest {
     map<string, string> metadata = 5;
 }
 message CreateMachineResponse {}
+
+message GetPluginInfoRequest {}
+message GetPluginInfoResponse {
+    string id = 1;
+}

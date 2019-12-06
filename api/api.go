@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net"
+	"os"
 
 	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
@@ -12,6 +13,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/hashicorp/go-plugin"
+
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
@@ -20,11 +23,18 @@ import (
 type API struct {
 	config *config.Config
 	//search  *search.Search
-	storage storage.Engine
+	storage       storage.Engine
+	backendPlugin map[string]plugin.Plugin
+	proto.UnimplementedCometAPIServer
 }
 
 // NewAPI inits a grpc api service
 func NewAPI(config *config.Config) *API {
+
+	err := createDirectories(config)
+	if err != nil {
+		utils.Log().Panicf("could not create needed directories: %v", err)
+	}
 
 	storage, err := storage.InitStorage(storage.EngineType(config.Database.Engine))
 	if err != nil {
@@ -39,6 +49,27 @@ func NewAPI(config *config.Config) *API {
 		config:  config,
 		storage: storage,
 	}
+}
+
+// createDirectroies attempts to create the needed directories to store plugins and repositories
+func createDirectories(config *config.Config) error {
+
+	directories := []string{config.Backend.RepoPath, config.Backend.BinaryPath}
+
+	for _, path := range directories {
+
+		_, err := os.Stat(path)
+
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(path, 0755)
+			if err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // CreateGRPCServer creates a grpc server with all the proper settings; TLS enabled

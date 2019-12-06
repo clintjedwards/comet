@@ -12,6 +12,12 @@ import (
 // Backend is a single implementation of the backend plugin for comet
 type backend struct{}
 
+func (*backend) GetPluginInfo(request *proto.GetPluginInfoRequest) (*proto.GetPluginInfoResponse, error) {
+	return &proto.GetPluginInfoResponse{
+		Id: "dev",
+	}, nil
+}
+
 // CreateMachine creates a fake machine
 func (*backend) CreateMachine(request *proto.CreateMachineRequest) (*proto.CreateMachineResponse, error) {
 	time.Sleep(time.Second * 5)

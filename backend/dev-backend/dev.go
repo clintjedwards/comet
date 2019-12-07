@@ -13,9 +13,7 @@ import (
 type backend struct{}
 
 func (*backend) GetPluginInfo(request *proto.GetPluginInfoRequest) (*proto.GetPluginInfoResponse, error) {
-	return &proto.GetPluginInfoResponse{
-		Id: "dev",
-	}, nil
+	return &proto.GetPluginInfoResponse{}, nil
 }
 
 // CreateMachine creates a fake machine

@@ -25,6 +25,4 @@ message CreateMachineRequest {
 message CreateMachineResponse {}
 
 message GetPluginInfoRequest {}
-message GetPluginInfoResponse {
-    string id = 1;
-}
+message GetPluginInfoResponse {}

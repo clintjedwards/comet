@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/clintjedwards/comet/backend"
 	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
 	"github.com/clintjedwards/comet/storage"
@@ -36,6 +37,10 @@ func NewAPI(config *config.Config) *API {
 		utils.Log().Panicf("could not create needed directories: %v", err)
 	}
 
+	backendPlugin := map[string]plugin.Plugin{
+		"backend": &backend.Plugin{},
+	}
+
 	storage, err := storage.InitStorage(storage.EngineType(config.Database.Engine))
 	if err != nil {
 		utils.Log().Panicf("could not init storage: %v", err)
@@ -46,8 +51,9 @@ func NewAPI(config *config.Config) *API {
 	// go searchIndex.BuildIndex()
 
 	return &API{
-		config:  config,
-		storage: storage,
+		backendPlugin: backendPlugin,
+		config:        config,
+		storage:       storage,
 	}
 }
 

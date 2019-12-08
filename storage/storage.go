@@ -34,6 +34,9 @@ type Engine interface {
 	AddComet(id string, comet *proto.Comet) error
 	UpdateComet(id string, comet *proto.Comet) error
 	DeleteComet(id string) error
+	AddBackend(backend *proto.Backend) error
+	GetBackend() (*proto.Backend, error)
+	DeleteBackend() error
 }
 
 // InitStorage creates a storage object with the appropriate engine

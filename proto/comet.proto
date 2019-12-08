@@ -47,6 +47,15 @@ message Comet {
   map<string, string> metadata = 12;
 }
 
+message Backend {
+  // Human readable backend name
+  string name = 1;
+  // The location of backend repository
+  string location = 2;
+  string created = 3;
+  string modified = 4;
+}
+
 service CometAPI {
   // Comet routes
   rpc CreateComet(CreateCometRequest) returns (CreateCometResponse);

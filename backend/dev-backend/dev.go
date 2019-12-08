@@ -1,5 +1,5 @@
 // Package dev defines a development backend for comet
-package dev
+package main
 
 import (
 	"github.com/hashicorp/go-plugin"

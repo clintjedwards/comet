@@ -181,3 +181,18 @@ func (boltDB *boltDB) DeleteComet(id string) error {
 	}
 	return nil
 }
+
+func (boltDB *boltDB) AddBackend(backend *proto.Backend) error {
+
+	return nil
+}
+
+func (boltDB *boltDB) GetBackend() (*proto.Backend, error) {
+
+	return nil, nil
+}
+
+func (boltDB *boltDB) DeleteBackend() error {
+
+	return nil
+}

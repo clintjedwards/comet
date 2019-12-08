@@ -15,6 +15,8 @@ type Bucket string
 const (
 	// CometsBucket represents the container in which comets are managed
 	CometsBucket Bucket = "comets"
+	// BackendBucket represents the container in which the backend is managed
+	BackendBucket Bucket = "backend"
 )
 
 // EngineType represents the different possible storage engines available

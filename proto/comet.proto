@@ -48,12 +48,10 @@ message Comet {
 }
 
 message Backend {
-  // Human readable backend name
-  string name = 1;
   // The location of backend repository
-  string location = 2;
-  string created = 3;
-  string modified = 4;
+  string location = 1;
+  int64 created = 2;
+  int64 modified = 3;
 }
 
 service CometAPI {

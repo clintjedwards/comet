@@ -16,6 +16,8 @@ type boltDB struct {
 	store    *bolt.DB
 }
 
+const backendKey = "backend"
+
 func (boltDB *boltDB) Init(config *config.Config) error {
 
 	db, err := bolt.Open(config.Database.BoltDB.Path, 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -183,16 +185,76 @@ func (boltDB *boltDB) DeleteComet(id string) error {
 }
 
 func (boltDB *boltDB) AddBackend(backend *proto.Backend) error {
+	err := boltDB.store.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BackendBucket))
 
+		// First check if key exists
+		currentBackend := bucket.Get([]byte(backendKey))
+		if currentBackend != nil {
+			return utils.ErrEntityExists
+		}
+
+		backendRaw, err := go_proto.Marshal(backend)
+		if err != nil {
+			return err
+		}
+
+		err = bucket.Put([]byte(backendKey), backendRaw)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (boltDB *boltDB) GetBackend() (*proto.Backend, error) {
 
-	return nil, nil
+	var storedBackend proto.Backend
+
+	err := boltDB.store.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BackendBucket))
+
+		backendRaw := bucket.Get([]byte(backendKey))
+		if backendRaw == nil {
+			return utils.ErrEntityNotFound
+		}
+
+		err := go_proto.Unmarshal(backendRaw, &storedBackend)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &storedBackend, nil
 }
 
 func (boltDB *boltDB) DeleteBackend() error {
+	err := boltDB.store.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BackendBucket))
 
+		// First check if key exists
+		currentBackend := bucket.Get([]byte(backendKey))
+		if currentBackend == nil {
+			return utils.ErrEntityNotFound
+		}
+
+		err := bucket.Delete([]byte(backendKey))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }

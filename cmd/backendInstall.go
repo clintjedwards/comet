@@ -5,9 +5,14 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/clintjedwards/comet/config"
+	"github.com/clintjedwards/comet/proto"
+	"github.com/clintjedwards/comet/storage"
 	"github.com/clintjedwards/comet/utils"
+	"github.com/gernest/wow"
+	"github.com/gernest/wow/spin"
 	"github.com/hashicorp/go-getter"
 	"github.com/spf13/cobra"
 )
@@ -97,15 +102,21 @@ func buildPlugin(path string) ([]byte, error) {
 		return output, err
 	}
 
-	// remove plugin folder when we're finished
-
 	return output, nil
 }
 
 func runBackendInstallCmd(cmd *cobra.Command, args []string) {
+	loading := wow.New(os.Stdout, spin.Get(spin.Dots), " Initializing assets")
+	loading.Start()
+
 	config, err := config.FromEnv()
 	if err != nil {
 		log.Fatalf("Could not get config: %v", err)
+	}
+
+	database, err := storage.InitStorage(storage.EngineType(config.Database.Engine))
+	if err != nil {
+		log.Fatalf("could not init storage: %v", err)
 	}
 
 	location := args[0]
@@ -121,18 +132,27 @@ func runBackendInstallCmd(cmd *cobra.Command, args []string) {
 		log.Fatalf("Could not create required directories: %v", err)
 	}
 
+	loading.Text(" Downloading backend plugin")
+
 	err = getPluginRaw(location)
 	if err != nil {
 		log.Fatalf("Could not get plugin: %v", err)
 	}
 
+	loading.Text(" Building backend plugin")
+
 	output, err := buildPlugin(config.Backend.Path)
 	if err != nil {
-		log.Fatalf("Could not build plugin: %v\n%s", err, output)
+		log.Fatalf("\nCould not build plugin: %v\n%s", err, output)
 	}
 
-	//cleanup and insert plugin into database
-	//add wait spinners
+	database.AddBackend(&proto.Backend{
+		Location: location,
+		Created:  time.Now().Unix(),
+		Modified: time.Now().Unix(),
+	})
+
+	loading.PersistWith(spin.Spinner{}, "Backend Installed!")
 }
 
 func init() {

@@ -7,20 +7,16 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/clintjedwards/comet/backend"
 	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
 	"github.com/clintjedwards/comet/storage"
 	"github.com/clintjedwards/comet/utils"
+
 	"github.com/gernest/wow"
 	"github.com/gernest/wow/spin"
 	"github.com/hashicorp/go-getter"
 	"github.com/spf13/cobra"
-)
-
-const (
-	golangBinaryName = "go"
-	pluginBinaryName = "backend"
-	tmpDir           = "/tmp"
 )
 
 var cmdBackendInstall = &cobra.Command{
@@ -66,7 +62,7 @@ func createDirectories(directories ...string) error {
 // of the plugin we want
 // path points to the directory where plugins are stored
 func pluginExists(path string) bool {
-	info, err := os.Stat(fmt.Sprintf("%s/%s", path, pluginBinaryName))
+	info, err := os.Stat(fmt.Sprintf("%s/%s", path, backend.PluginBinaryName))
 	if os.IsNotExist(err) {
 		return false
 	}
@@ -78,7 +74,7 @@ func pluginExists(path string) bool {
 // See (https://github.com/hashicorp/go-getter#url-format) for more information
 // on how to form input
 func getPluginRaw(location string) error {
-	err := getter.GetAny(fmt.Sprintf("%s/%s", tmpDir, pluginBinaryName), location)
+	err := getter.GetAny(fmt.Sprintf("%s/%s", backend.TmpDir, backend.PluginBinaryName), location)
 	return err
 }
 
@@ -86,12 +82,12 @@ func getPluginRaw(location string) error {
 // with the provided name
 // id refers to the unique hash of the plugin
 func buildPlugin(path string) ([]byte, error) {
-	fullPluginPath := fmt.Sprintf("%s/%s", path, pluginBinaryName)
-	tmpPath := fmt.Sprintf("%s/%s", tmpDir, pluginBinaryName)
+	fullPluginPath := fmt.Sprintf("%s/%s", path, backend.PluginBinaryName)
+	tmpPath := fmt.Sprintf("%s/%s", backend.TmpDir, backend.PluginBinaryName)
 
 	buildArgs := []string{"build", "-o", fullPluginPath}
 
-	golangBinaryPath, err := exec.LookPath(golangBinaryName)
+	golangBinaryPath, err := exec.LookPath(backend.GolangBinaryName)
 	if err != nil {
 		return nil, err
 	}
@@ -122,12 +118,12 @@ func runBackendInstallCmd(cmd *cobra.Command, args []string) {
 	location := args[0]
 	update, _ := cmd.Flags().GetBool("update")
 
-	if pluginExists(config.Backend.Path) && !update {
+	if pluginExists(config.Backend.PluginDirectoryPath) && !update {
 		fmt.Println("Backend already exists")
 		return
 	}
 
-	err = createDirectories(tmpDir, config.Backend.Path)
+	err = createDirectories(backend.TmpDir, config.Backend.PluginDirectoryPath)
 	if err != nil {
 		log.Fatalf("Could not create required directories: %v", err)
 	}
@@ -141,7 +137,7 @@ func runBackendInstallCmd(cmd *cobra.Command, args []string) {
 
 	loading.Text(" Building backend plugin")
 
-	output, err := buildPlugin(config.Backend.Path)
+	output, err := buildPlugin(config.Backend.PluginDirectoryPath)
 	if err != nil {
 		log.Fatalf("\nCould not build plugin: %v\n%s", err, output)
 	}

@@ -12,7 +12,7 @@ type BoltDBConfig struct {
 // BackendConfig defines settings for comet's backend assets
 type BackendConfig struct {
 	// The path where built plugin binaries should stay
-	Path string `envconfig:"plugin_path" default:"/tmp/comet-dev"`
+	PluginDirectoryPath string `envconfig:"plugin_directory_path" default:"/tmp/comet-dev"`
 }
 
 // CometConfig defines config settings for the comet service

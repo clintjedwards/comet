@@ -15,9 +15,9 @@ dist/*
 main.js
 
 #protobuf
+*.pb.go
 !backendPlugin.pb.go
 
-*.pb.go
 *_pb.d.ts
 *_pb.js
 *Pb.ts

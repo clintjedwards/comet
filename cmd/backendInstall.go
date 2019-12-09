@@ -36,7 +36,7 @@ For more information on what formats location accepts see:
 https://github.com/hashicorp/go-getter#supported-protocols-and-detectors
 
 Examples:
-comet backend install ~/comet/backend/dev-backend
+comet backend install ~/comet/dev-backend
 comet backend install github.com/hashicorp/go-getter
 `,
 	Args: cobra.MaximumNArgs(1),

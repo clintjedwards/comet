@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
+func generateName() string {
+
+	return ""
+}
+
 func (api *API) spawnComet(request *proto.CreateCometRequest) (*proto.CreateCometResponse, error) {
 
 	_ = proto.Comet{}
@@ -42,6 +47,8 @@ func (api *API) spawnComet(request *proto.CreateCometRequest) (*proto.CreateCome
 	if err != nil {
 		return &proto.CreateCometResponse{}, nil
 	}
+
+	backend.CreateMachine(&backendProto.CreateMachineRequest{})
 
 	return &proto.CreateCometResponse{}, nil
 }

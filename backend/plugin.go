@@ -7,11 +7,11 @@ import (
 
 const (
 	// GolangBinaryName is typically used in searching for the binary on file systems
-	GolangBinaryName = "go"
+	GolangBinaryName string = "go"
 	// PluginBinaryName is the name of the backend plugin once compiled into a binary
-	PluginBinaryName = "backend"
+	PluginBinaryName string = "backend"
 	// TmpDir is the directory where we download plugin src files to before compiling
-	TmpDir = "/tmp"
+	TmpDir string = "/tmp"
 )
 
 // Handshake is a common handshake that is shared by plugin and host.

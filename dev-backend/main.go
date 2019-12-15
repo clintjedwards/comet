@@ -4,9 +4,10 @@ package main
 import (
 	"github.com/hashicorp/go-plugin"
 
+	"time"
+
 	backendPlugin "github.com/clintjedwards/comet/backend"
 	proto "github.com/clintjedwards/comet/backend/proto"
-	"time"
 )
 
 // Backend is a single implementation of the backend plugin for comet

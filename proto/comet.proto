@@ -38,13 +38,10 @@ message Comet {
     STOPPED = 4;
   }
   Status status = 10;
-  // owners refers to the human readable names of teams/users who are allowed to
-  // manage the asset useful for authorization
-  repeated string owners = 11;
   // metadata is a key/value store for extra data that apps might want to store
   // per comet. This is a great place to store backend specific things like
   // virtual machine type(m5.4xlarge)
-  map<string, string> metadata = 12;
+  map<string, string> metadata = 11;
 }
 
 message Backend {
@@ -55,6 +52,9 @@ message Backend {
 }
 
 service CometAPI {
+  // System routes
+  rpc GetSystemInfo(GetSystemInfoRequest) returns (GetSystemInfoResponse);
+
   // Comet routes
   rpc CreateComet(CreateCometRequest) returns (CreateCometResponse);
   rpc DeleteComet(DeleteCometRequest) returns (DeleteCometResponse);
@@ -67,13 +67,32 @@ service CometAPI {
   rpc UpdateComet(UpdateCometRequest) returns (UpdateCometResponse);
 }
 
+message GetSystemInfoRequest {}
+message GetSystemInfoResponse {
+  bool debug_enabled = 1;
+  string commit = 2;
+  string version = 3;
+  string database_engine = 4;
+}
+
 message CreateCometRequest {
   // Comet human readable name
   string name = 1;
-  string notes = 2;
+  // total time requested for comet life by user
+  // accepts humanized time string
+  string time_requested = 2;
+  enum Size {
+    NONE = 0;
+    TINY = 1;
+    SMALL = 2;
+    MEDIUM = 3;
+    LARGE = 4;
+    ENORMOUS = 5;
+  }
+  Size size = 3;
   // metadata is a key/value store for extra data that apps might want to store
-  // per comet
-  map<string, string> metadata = 3;
+  map<string, string> metadata = 4;
+  string notes = 5;
 }
 message CreateCometResponse { Comet comet = 1; }
 

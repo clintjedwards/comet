@@ -1,5 +1,5 @@
-// Package name generates randomized comet names
-package name
+// Package namegen generates randomized comet names
+package namegen
 
 import (
 	"fmt"

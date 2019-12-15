@@ -19,8 +19,7 @@ message CreateMachineRequest {
         ENORMOUS = 5;
       }
     Size size = 3;
-    repeated string owners = 4;
-    map<string, string> metadata = 5;
+    map<string, string> metadata = 4;
 }
 message CreateMachineResponse {}
 

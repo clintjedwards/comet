@@ -1,4 +1,4 @@
-package name
+package namegen
 
 var adjectives = []string{
 	"abandoned",

@@ -1,48 +1,40 @@
 package api
 
 import (
-	"log"
 	"net"
 
 	"github.com/clintjedwards/comet/backend"
 	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
 	"github.com/clintjedwards/comet/storage"
-	"github.com/clintjedwards/comet/utils"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/hashicorp/go-plugin"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+
+	"github.com/rs/zerolog/log"
 )
 
 // API represents the grpc backend service
 type API struct {
-	config *config.Config
-	//search  *search.Search
+	config        *config.Config
 	storage       storage.Engine
 	backendPlugin map[string]plugin.Plugin
+	// we add this so we aren't forced to immediately implement all methods
+	// for a valid api server
 	proto.UnimplementedCometAPIServer
 }
 
 // NewAPI inits a grpc api service
-func NewAPI(config *config.Config) *API {
+func NewAPI(config *config.Config, storage storage.Engine) *API {
 
+	// Declare an empty backend plugin so that we can init it later
 	backendPlugin := map[string]plugin.Plugin{
 		"backend": &backend.Plugin{},
 	}
-
-	storage, err := storage.InitStorage(storage.EngineType(config.Database.Engine))
-	if err != nil {
-		utils.Log().Panicf("could not init storage: %v", err)
-	}
-
-	// searchIndex, err := search.InitSearch()
-
-	// go searchIndex.BuildIndex()
 
 	return &API{
 		backendPlugin: backendPlugin,
@@ -54,18 +46,10 @@ func NewAPI(config *config.Config) *API {
 // CreateGRPCServer creates a grpc server with all the proper settings; TLS enabled
 func CreateGRPCServer(api *API) *grpc.Server {
 
-	creds, err := credentials.NewServerTLSFromFile(api.config.TLSCertPath, api.config.TLSKeyPath)
-	if err != nil {
-		utils.Log().Panicf("failed to get certificates: %v", err)
-	}
-
-	serverOption := grpc.Creds(creds)
-
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_prometheus.UnaryServerInterceptor,
 		)),
-		serverOption,
 	)
 
 	grpc_prometheus.EnableHandlingTimeHistogram()
@@ -82,11 +66,10 @@ func InitGRPCService(config *config.Config, server *grpc.Server) {
 
 	listen, err := net.Listen("tcp", config.Comet.GRPCURL)
 	if err != nil {
-		utils.Log().Panicf("could not init tcp listener", err)
+		log.Panic().Err(err).Msg("could not init tcp listener")
 	}
 
-	utils.Log().Infow("starting comet grpc service",
-		"url", config.Comet.GRPCURL)
+	log.Info().Str("url", config.Comet.GRPCURL).Msg("starting comet grpc service")
 
-	log.Fatal(server.Serve(listen))
+	log.Fatal().Err(server.Serve(listen)).Msg("server exited abnormally")
 }

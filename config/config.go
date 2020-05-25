@@ -2,9 +2,9 @@ package config
 
 import "github.com/kelseyhightower/envconfig"
 
-// BoltDBConfig represents a on-disk key/value store
+// BoltConfig represents a on-disk key/value store
 // https://github.com/boltdb/bolt
-type BoltDBConfig struct {
+type BoltConfig struct {
 	// file path for database file
 	Path string `envconfig:"database_path" default:"/tmp/comet.db"`
 }
@@ -40,9 +40,9 @@ type CommandLineConfig struct {
 // DatabaseConfig defines config settings for comet database
 type DatabaseConfig struct {
 	// The database engine used by the backend
-	// possible values are: boltdb
-	Engine string `envconfig:"database_engine" default:"boltdb"`
-	BoltDB *BoltDBConfig
+	// possible values are: bolt
+	Engine string `envconfig:"database_engine" default:"bolt"`
+	Bolt   *BoltConfig
 }
 
 // MetricsConfig represents configuration for the metrics endpoint
@@ -52,7 +52,9 @@ type MetricsConfig struct {
 
 // Config represents overall configuration objects of the application
 type Config struct {
-	Debug       bool   `envconfig:"debug" default:"false"`
+	Debug bool `envconfig:"debug" default:"false"`
+	// Possible values "debug", "info", "warn", "error", "fatal", "panic"
+	LogLevel    string `envconfig:"loglevel" default:"info"`
 	TLSCertPath string `envconfig:"tls_cert_path" default:"./localhost.crt"`
 	TLSKeyPath  string `envconfig:"tls_key_path" default:"./localhost.key"`
 	Comet       *CometConfig

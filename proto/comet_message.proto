@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package proto;
+
+// Comet represents a single comet instance (vm/container/etc)
+message Comet {
+  // id is the unique identifier for a node in comet
+  string id = 1;
+  // instance_id is the unique identifier for the particular backend being used
+  // For example if this was AWS the instance_id would be the resource id
+  string instance_id = 2;
+  // Comet human readable name
+  string name = 3;
+  string notes = 4;
+  // size to a requested size of the machine requested
+  enum Size {
+    NONE = 0;
+    TINY = 1;
+    SMALL = 2;
+    MEDIUM = 3;
+    LARGE = 4;
+    ENORMOUS = 5;
+  }
+  Size size = 5;
+  // address is the note address for the comet, this is usually a DNS or IP
+  string address = 6;
+  // Time created in epoch
+  int64 created = 7;
+  // Time modified in epoch
+  int64 modified = 8;
+  // Time of expected comet deletion in epoch
+  int64 deletion = 9;
+  enum Status {
+    UNKNOWN = 0;
+    CRASHING = 1;
+    PENDING = 2;
+    RUNNING = 3;
+    STOPPED = 4;
+  }
+  Status status = 10;
+  // metadata is a key/value store for extra data that apps might want to store
+  // per comet. This is a great place to store backend specific things like
+  // virtual machine type(m5.4xlarge)
+  map<string, string> metadata = 11;
+}
+
+message Backend {
+  // The location of backend repository
+  string location = 1;
+  int64 created = 2;
+  int64 modified = 3;
+}

@@ -9,12 +9,12 @@ GO_LDFLAGS := '-X "github.com/clintjedwards/${APP_NAME}/cmd.appVersion=$(VERSION
 
 ## build-protos: build required protobuf files
 build-protos:
-	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --proto_path=proto --go_out=plugins=grpc:proto proto/*.proto
 	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 
 ## build: run tests and compile application
 build: check-path-included
-	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --proto_path=proto --go_out=plugins=grpc:proto proto/*.proto
 	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 	go mod tidy
 	go test ./utils
@@ -22,14 +22,14 @@ build: check-path-included
 
 ## run: build application and run server
 run:
-	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --proto_path=proto --go_out=plugins=grpc:proto proto/*.proto
 	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 	go mod tidy
 	go build -ldflags $(GO_LDFLAGS) -o /tmp/${APP_NAME} && /tmp/${APP_NAME} server
 
 ## install: build application and install on system
 install:
-	protoc --go_out=plugins=grpc:. proto/*.proto
+	protoc --proto_path=proto --go_out=plugins=grpc:proto proto/*.proto
 	protoc --go_out=plugins=grpc:. backend/proto/*.proto
 	go mod tidy
 	go build -ldflags $(GO_LDFLAGS) -o /tmp/${APP_NAME}

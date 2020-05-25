@@ -1,21 +1,20 @@
 package metrics
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/clintjedwards/comet/config"
-	"github.com/clintjedwards/comet/utils"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/rs/zerolog/log"
 )
 
 // InitPrometheusService starts a long running http prometheus endpoint
 func InitPrometheusService(config *config.Config) {
 
-	utils.Log().Infow("starting metrics http service",
-		"url", config.Metrics.Endpoint)
+	log.Info().Str("url", config.Metrics.Endpoint).Msg("starting metrics http service")
 
 	http.Handle("/metrics", promhttp.Handler())
-	log.Fatal(http.ListenAndServe(config.Metrics.Endpoint, nil))
+	log.Fatal().Err(http.ListenAndServe(config.Metrics.Endpoint, nil)).Msg("metrics server exited abnormally")
 }

@@ -2,21 +2,22 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"time"
 
+	"github.com/clintjedwards/comet/app"
 	"github.com/clintjedwards/comet/backend"
 	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
 	"github.com/clintjedwards/comet/storage"
 	"github.com/clintjedwards/comet/utils"
+	"github.com/theckman/yacspin"
 
-	"github.com/gernest/wow"
-	"github.com/gernest/wow/spin"
 	"github.com/hashicorp/go-getter"
 	"github.com/spf13/cobra"
+
+	"github.com/rs/zerolog/log"
 )
 
 var cmdBackendInstall = &cobra.Command{
@@ -80,7 +81,6 @@ func getPluginRaw(location string) error {
 
 // buildPlugin builds the plugin from srcPath and stores it in dstPath
 // with the provided name
-// id refers to the unique hash of the plugin
 func buildPlugin(path string) ([]byte, error) {
 	fullPluginPath := fmt.Sprintf("%s/%s", path, backend.PluginBinaryName)
 	tmpPath := fmt.Sprintf("%s/%s", backend.TmpDir, backend.PluginBinaryName)
@@ -101,46 +101,86 @@ func buildPlugin(path string) ([]byte, error) {
 	return output, nil
 }
 
+func initSpinner(suffix string) (*yacspin.Spinner, error) {
+	cfg := yacspin.Config{
+		Frequency:         100 * time.Millisecond,
+		CharSet:           yacspin.CharSets[14],
+		Suffix:            " " + suffix,
+		SuffixAutoColon:   true,
+		StopCharacter:     "✓",
+		StopColors:        []string{"fgGreen"},
+		StopFailCharacter: "x",
+		StopFailColors:    []string{"fgRed"},
+	}
+
+	spinner, err := yacspin.New(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return spinner, nil
+}
+
 func runBackendInstallCmd(cmd *cobra.Command, args []string) {
-	loading := wow.New(os.Stdout, spin.Get(spin.Dots), " Initializing assets")
-	loading.Start()
+	spinner, err := initSpinner("installing comet backend")
+	if err != nil {
+		log.Error().Err(err).Msg("could not init spinner")
+		return
+	}
+	spinner.Message("retrieving configuration")
+	spinner.Start()
 
 	config, err := config.FromEnv()
 	if err != nil {
-		log.Fatalf("Could not get config: %v", err)
+		spinner.StopFailMessage(fmt.Sprintf("could not get config: %v", err))
+		spinner.StopFail()
+		return
 	}
 
-	database, err := storage.InitStorage(storage.EngineType(config.Database.Engine))
+	spinner.Message("connecting to storage")
+
+	database, err := app.InitStorage(storage.EngineType(config.Database.Engine))
 	if err != nil {
-		log.Fatalf("could not init storage: %v", err)
+		spinner.StopFailMessage(fmt.Sprintf("could not init storage: %v", err))
+		spinner.StopFail()
+		return
 	}
 
 	location := args[0]
 	update, _ := cmd.Flags().GetBool("update")
 
 	if pluginExists(config.Backend.PluginDirectoryPath) && !update {
-		fmt.Println("Backend already exists")
+		spinner.StopFailMessage("backend already exists")
+		spinner.StopFail()
 		return
 	}
 
 	err = createDirectories(backend.TmpDir, config.Backend.PluginDirectoryPath)
 	if err != nil {
-		log.Fatalf("Could not create required directories: %v", err)
+		spinner.StopFailMessage(fmt.Sprintf("could not create required directories: %v", err))
+		spinner.StopFail()
+		return
 	}
 
-	loading.Text(" Downloading backend plugin")
+	spinner.Message("downloading backend plugin")
 
 	err = getPluginRaw(location)
 	if err != nil {
-		log.Fatalf("Could not get plugin: %v", err)
+		spinner.StopFailMessage(fmt.Sprintf("could not get plugin: %v", err))
+		spinner.StopFail()
+		return
 	}
 
-	loading.Text(" Building backend plugin")
+	spinner.Message("building backend plugin")
 
 	output, err := buildPlugin(config.Backend.PluginDirectoryPath)
 	if err != nil {
-		log.Fatalf("\nCould not build plugin: %v\n%s", err, output)
+		spinner.StopFailMessage(fmt.Sprintf("could not build plugin: %v\n%s", err, output))
+		spinner.StopFail()
+		return
 	}
+
+	spinner.Message("adding backend to database")
 
 	database.AddBackend(&proto.Backend{
 		Location: location,
@@ -148,7 +188,8 @@ func runBackendInstallCmd(cmd *cobra.Command, args []string) {
 		Modified: time.Now().Unix(),
 	})
 
-	loading.PersistWith(spin.Spinner{}, "Backend Installed!")
+	spinner.Suffix(" installed comet backend")
+	spinner.Stop()
 }
 
 func init() {

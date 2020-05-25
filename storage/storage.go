@@ -1,9 +1,6 @@
 package storage
 
 import (
-	"fmt"
-
-	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
 )
 
@@ -23,14 +20,13 @@ const (
 type EngineType string
 
 const (
-	// StorageEngineBoltDB represents a boltDB storage engine.
+	// BoltEngine represents a bolt storage engine.
 	// A file based key-value store.(https://github.com/boltdb/bolt)
-	StorageEngineBoltDB EngineType = "boltdb"
+	BoltEngine EngineType = "bolt"
 )
 
 // Engine represents backend storage implementations where items can be persisted
 type Engine interface {
-	Init(config *config.Config) error
 	GetAllComets() (map[string]*proto.Comet, error)
 	GetComet(id string) (*proto.Comet, error)
 	AddComet(id string, comet *proto.Comet) error
@@ -39,26 +35,4 @@ type Engine interface {
 	AddBackend(backend *proto.Backend) error
 	GetBackend() (*proto.Backend, error)
 	DeleteBackend() error
-}
-
-// InitStorage creates a storage object with the appropriate engine
-func InitStorage(engineType EngineType) (Engine, error) {
-
-	switch engineType {
-	case StorageEngineBoltDB:
-		config, err := config.FromEnv()
-		if err != nil {
-			return nil, err
-		}
-
-		boltDBStorageEngine := boltDB{}
-		err = boltDBStorageEngine.Init(config)
-		if err != nil {
-			return nil, err
-		}
-
-		return &boltDBStorageEngine, nil
-	default:
-		return nil, fmt.Errorf("storage backend not implemented: %s", engineType)
-	}
 }

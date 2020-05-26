@@ -5,3 +5,4 @@
 * There should be a streaming endpoint when a comet is being created for logs and status updates
 * We should make an rpc or maybe a command line flag that causes comet to reload backend plugins so that they can stay up to date
 * When installing a backend we can probably include its name and type into the database
+* On server startup we should check that a backend is installed and is available

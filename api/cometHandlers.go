@@ -50,13 +50,13 @@ func (api *API) CreateComet(ctx context.Context, request *proto.CreateCometReque
 		Metadata: newComet.Metadata,
 	}
 
-	go api.spawnComet(machineRequest)
-
 	err := api.storage.AddComet(newComet.Id, &newComet)
 	if err != nil {
 		return &proto.CreateCometResponse{},
 			status.Errorf(codes.Internal, "could not create comet:%v", err)
 	}
+
+	go api.spawnComet(machineRequest)
 
 	return &proto.CreateCometResponse{Comet: &newComet}, nil
 }

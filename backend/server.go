@@ -29,7 +29,7 @@ func (m *GRPCServer) CreateMachine(ctx context.Context, request *proto.CreateMac
 	return response, err
 }
 
-// GetPluginInfo creates a machine and passes relevant details back to comet
+// GetPluginInfo returns plugin info for purposes of logging and debugging
 func (m *GRPCServer) GetPluginInfo(ctx context.Context, request *proto.GetPluginInfoRequest) (*proto.GetPluginInfoResponse, error) {
 	response, err := m.Impl.GetPluginInfo(request)
 	return response, err

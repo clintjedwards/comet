@@ -1,7 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"net"
+	"os"
+	"os/exec"
 
 	"github.com/clintjedwards/comet/backend"
 	"github.com/clintjedwards/comet/config"
@@ -10,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -22,7 +26,7 @@ import (
 type API struct {
 	config        *config.Config
 	storage       storage.Engine
-	backendPlugin map[string]plugin.Plugin
+	backendPlugin backend.PluginDefinition
 	// we add this so we aren't forced to immediately implement all methods
 	// for a valid api server
 	proto.UnimplementedCometAPIServer
@@ -31,13 +35,44 @@ type API struct {
 // NewAPI inits a grpc api service
 func NewAPI(config *config.Config, storage storage.Engine) *API {
 
-	// Declare an empty backend plugin so that we can init it later
-	backendPlugin := map[string]plugin.Plugin{
-		"backend": &backend.Plugin{},
+	// Init the plugin and store the client so we can use it later
+	pluginPath := fmt.Sprintf("%s/%s", config.Backend.PluginDirectoryPath, backend.PluginBinaryName)
+
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: backend.Handshake,
+		Plugins: map[string]plugin.Plugin{
+			"backend": &backend.Plugin{},
+		},
+		Cmd:              exec.Command(pluginPath),
+		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		Logger: hclog.New(&hclog.LoggerOptions{
+			Output: os.Stderr,
+			Level:  hclog.LevelFromString(config.LogLevel),
+			Name:   "plugin",
+		}),
+	})
+	// TODO: We don't ever clean up the client here, not sure if this will lead to issues
+	// the client is also shared between goroutines
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		log.Fatal().Err(err).Msg("could not connect to backend plugin")
+	}
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense(backend.PluginBinaryName)
+	if err != nil {
+		log.Fatal().Err(err).Msg("could not connect to backend plugin")
+	}
+
+	plugin, ok := raw.(backend.PluginDefinition)
+	if !ok {
+		log.Fatal().Msg("could not convert plugin to backend plugin")
 	}
 
 	return &API{
-		backendPlugin: backendPlugin,
+		backendPlugin: plugin,
 		config:        config,
 		storage:       storage,
 	}

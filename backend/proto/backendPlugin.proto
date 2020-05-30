@@ -3,25 +3,51 @@ syntax = "proto3";
 package proto;
 
 service BackendPlugin {
-    rpc CreateMachine(CreateMachineRequest) returns (CreateMachineResponse);
-    rpc GetPluginInfo(GetPluginInfoRequest) returns (GetPluginInfoResponse);
+  rpc CreateMachine(CreateMachineRequest) returns (CreateMachineResponse);
+  // GetPluginInfo returns information about the backend plugin loaded
+  // this is useful for debugging and logging
+  rpc GetPluginInfo(GetPluginInfoRequest) returns (GetPluginInfoResponse);
+}
+
+// Machine represents a single comet instance (vm/container/etc)
+message Machine {
+  // instance_id is the unique identifier for the particular backend being used
+  // For example if this was AWS the instance_id would be the resource id
+  string instance_id = 1;
+  // address is the note address for the comet, this is usually a DNS or IP
+  string address = 2;
+  // metadata is a key/value store for extra data that apps might want to store
+  // per comet. This is a great place to store backend specific things like
+  // virtual machine type(m5.4xlarge)
+  map<string, string> metadata = 3;
 }
 
 message CreateMachineRequest {
-    string id = 1;
-    string name = 2;
-    enum Size {
-        NONE = 0;
-        TINY = 1;
-        SMALL = 2;
-        MEDIUM = 3;
-        LARGE = 4;
-        ENORMOUS = 5;
-      }
-    Size size = 3;
-    map<string, string> metadata = 4;
+  string id = 1;
+  string name = 2;
+  enum Size {
+    NONE = 0;
+    TINY = 1;
+    SMALL = 2;
+    MEDIUM = 3;
+    LARGE = 4;
+    ENORMOUS = 5;
+  }
+  Size size = 3;
+  map<string, string> metadata = 4;
 }
-message CreateMachineResponse {}
+message CreateMachineResponse {
+  Machine machine = 1;
+  // status_message is used to provide additional information about a machine's
+  // status
+  string status_message = 2;
+}
 
 message GetPluginInfoRequest {}
-message GetPluginInfoResponse {}
+message GetPluginInfoResponse {
+  string version = 1;
+  // name of plugin
+  string name = 2;
+  // provider name e.g.(AWS, GCP, docker, etc)
+  string provider = 3;
+}

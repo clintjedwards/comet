@@ -14,13 +14,26 @@ import (
 type backend struct{}
 
 func (*backend) GetPluginInfo(request *proto.GetPluginInfoRequest) (*proto.GetPluginInfoResponse, error) {
-	return &proto.GetPluginInfoResponse{}, nil
+	return &proto.GetPluginInfoResponse{
+		Version:  "0.0.1",
+		Name:     "development backend",
+		Provider: "in-memory",
+	}, nil
 }
 
 // CreateMachine creates a fake machine
 func (*backend) CreateMachine(request *proto.CreateMachineRequest) (*proto.CreateMachineResponse, error) {
 	time.Sleep(time.Second * 5)
-	return &proto.CreateMachineResponse{}, nil
+	return &proto.CreateMachineResponse{
+		Machine: &proto.Machine{
+			InstanceId: "fakeinstanceid",
+			Address:    "127.0.0.1",
+			Metadata: map[string]string{
+				"dev": "backend",
+			},
+		},
+		StatusMessage: "some special message about how this deployment went",
+	}, nil
 }
 
 func main() {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/clintjedwards/comet/app"
 	"github.com/clintjedwards/comet/backend"
+	backendProto "github.com/clintjedwards/comet/backend/proto"
 	"github.com/clintjedwards/comet/config"
 	"github.com/clintjedwards/comet/proto"
 	"github.com/clintjedwards/comet/storage"
@@ -15,6 +16,8 @@ import (
 	"github.com/theckman/yacspin"
 
 	"github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-plugin"
 	"github.com/spf13/cobra"
 
 	"github.com/rs/zerolog/log"
@@ -180,9 +183,61 @@ func runBackendInstallCmd(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	spinner.Message("adding backend to database")
+	spinner.Message("testing backend plugin")
 
+	// Test that the plugin is installed correctly
+	pluginPath := fmt.Sprintf("%s/%s", config.Backend.PluginDirectoryPath, backend.PluginBinaryName)
+
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: backend.Handshake,
+		Plugins: map[string]plugin.Plugin{
+			"backend": &backend.Plugin{},
+		},
+		Cmd:              exec.Command(pluginPath),
+		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		Logger: hclog.New(&hclog.LoggerOptions{
+			Output: os.Stderr,
+			Level:  hclog.LevelFromString(config.LogLevel),
+			Name:   "plugin",
+		}),
+	})
+	defer client.Kill()
+
+	// Connect via RPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		spinner.StopFailMessage(fmt.Sprintf("could not connect to backend plugin: %v", err))
+		spinner.StopFail()
+		return
+	}
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense(backend.PluginBinaryName)
+	if err != nil {
+		spinner.StopFailMessage(fmt.Sprintf("could not connect to backend plugin: %v", err))
+		spinner.StopFail()
+		return
+	}
+
+	plugin, ok := raw.(backend.PluginDefinition)
+	if !ok {
+		spinner.StopFailMessage(fmt.Sprintf("could not get backend plugin definition"))
+		spinner.StopFail()
+		return
+	}
+
+	info, err := plugin.GetPluginInfo(&backendProto.GetPluginInfoRequest{})
+	if err != nil {
+		spinner.StopFailMessage(fmt.Sprintf("could not get info from plugin: %v", err))
+		spinner.StopFail()
+		return
+	}
+
+	spinner.Message("adding backend to database")
 	database.AddBackend(&proto.Backend{
+		Name:     info.Name,
+		Version:  info.Version,
+		Provider: info.Provider,
 		Location: location,
 		Created:  time.Now().Unix(),
 		Modified: time.Now().Unix(),

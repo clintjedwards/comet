@@ -47,6 +47,9 @@ message Comet {
 message Backend {
   // The location of backend repository
   string location = 1;
-  int64 created = 2;
-  int64 modified = 3;
+  string name = 2;
+  string version = 3;
+  string provider = 4;
+  int64 created = 5;
+  int64 modified = 6;
 }
